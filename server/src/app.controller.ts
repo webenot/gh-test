@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
 import { AppService } from './app.service';
 import Stripe from 'stripe';
 import * as process from 'process';
@@ -56,6 +56,30 @@ export class AppController {
     console.log(subscription);
 
     return subscription;
+  }
+
+  @Post('subscription')
+  async createSubscription(): Promise<any> {
+    const subscription: any = await this.stripe.subscriptions.create({
+      customer: process.env.STRIPE_CUSTOMER,
+      items: [{ price: process.env.STRIPE_PRICE }],
+      payment_behavior: 'default_incomplete',
+      payment_settings: { save_default_payment_method: 'on_subscription' },
+      expand: ['latest_invoice.payment_intent', 'pending_setup_intent'],
+    });
+    if (subscription.pending_setup_intent !== null) {
+      return {
+        type: 'setup',
+        clientSecret: subscription.pending_setup_intent.client_secret,
+        id: subscription.id,
+      };
+    }
+
+    return {
+      type: 'payment',
+      clientSecret: subscription.latest_invoice.payment_intent.client_secret,
+      id: subscription.id,
+    }
   }
 
   @Post('proration')
