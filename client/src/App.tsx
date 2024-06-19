@@ -227,7 +227,8 @@ const Complete = () => {
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
     const subId = urlParams.get('subId');
-    console.log({ subId });
+    const redirect_status = urlParams.get('redirect_status');
+    console.log({ subId, redirect_status });
     fetch(`http://localhost:3001/subscription?id=${subId}`)
       .then((res) => res.json())
       .then((data) => {
@@ -314,6 +315,7 @@ const CheckoutForm = () => {
   const handleError = (error: any) => {
     setLoading(false);
     setErrorMessage(error.message);
+    console.log(error);
   };
 
   const handleSubmit = useCallback(async (event: any) => {
@@ -339,8 +341,8 @@ const CheckoutForm = () => {
     const res = await fetch('http://localhost:3001/subscription', {
       method: 'POST',
     });
-    const { type, clientSecret, id } = await res.json();
-    console.log({ type, clientSecret, id });
+    const { type, clientSecret, id, status } = await res.json();
+    console.log({ type, clientSecret, id, status });
     const confirmIntent = type === 'setup' ? stripe.confirmSetup : stripe.confirmPayment;
 
     // Confirm the Intent using the details collected by the Payment Element

@@ -72,6 +72,7 @@ export class AppController {
         type: 'setup',
         clientSecret: subscription.pending_setup_intent.client_secret,
         id: subscription.id,
+        status: subscription.status,
       };
     }
 
@@ -79,6 +80,7 @@ export class AppController {
       type: 'payment',
       clientSecret: subscription.latest_invoice.payment_intent.client_secret,
       id: subscription.id,
+      status: subscription.status,
     }
   }
 
