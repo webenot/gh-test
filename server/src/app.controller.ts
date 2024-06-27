@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, RawBodyRequest, Req } from '@nestjs/common';
 import { AppService } from './app.service';
 import Stripe from 'stripe';
 import * as process from 'process';
@@ -32,11 +32,7 @@ export class AppController {
         },
       ],
       mode: 'subscription',
-      // success_url: 'https://webhook.site/2faaa6a8-da2f-49db-b897-bb1fa63da4a4',
-      // return_url: 'http://localhost:3000/return',
-      // cancel_url: 'https://webhook.site/2faaa6a8-da2f-49db-b897-bb1fa63da4a4',
       customer: process.env.STRIPE_CUSTOMER,
-      // cancel_url: 'http://localhost:3000/',
       redirect_on_completion: 'never',
     })
     console.log(session);
@@ -50,9 +46,7 @@ export class AppController {
 
   @Get('subscription')
   async getSubscription(@Query('id') id: string): Promise<any> {
-    const subscription = await this.stripe.subscriptions.retrieve(id, { expand: ['customer.default_source', 'plan.product'] });
-    // const customer = await this.stripe.customers.retrieve('cus_QJKq752LScAXQz');
-    // const paymentMethods = await this.stripe.customers.listPaymentMethods('cus_QJKq752LScAXQz');
+    const subscription = await this.stripe.subscriptions.retrieve(id, { expand: ['customer.default_source', 'plan.product', 'default_payment_method'] });
     console.log(subscription);
 
     return subscription;
@@ -122,8 +116,8 @@ export class AppController {
   }
 
   @Post('webhook')
-  stripeWebhook(@Body() body: any): any {
-    console.log(body);
+  stripeWebhook(@Body() body: any, @Req() request: any): any {
+    console.log(body, request.headers, request.rawBody);
     return {
       message: 'Success',
     };
